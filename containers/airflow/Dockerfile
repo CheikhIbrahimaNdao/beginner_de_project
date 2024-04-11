@@ -19,4 +19,4 @@ CMD ["webserver"]
 
 FROM apache/airflow:2.2.0
 COPY requirements.txt /
-pip install --no-cache-dir -r containers/airflow/requirements.txt
+RUN pip install --no-cache-dir -r containers/airflow/requirements.txt
