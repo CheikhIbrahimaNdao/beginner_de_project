@@ -39,7 +39,6 @@ ci: isort format type lint pytest
 
 ####################################################################################################################
 # Set up cloud infrastructure
-
 tf-init:
 	terraform -chdir=./terraform init
 
@@ -54,27 +53,29 @@ infra-config:
 
 ####################################################################################################################
 # Create tables in Warehouse
+spectrum-migration:
+	./spectrum_migrate.sh
 
 db-migration:
 	@read -p "Enter migration name:" migration_name; docker exec webserver yoyo new ./migrations -m "$$migration_name"
 
-warehouse-migration:
-	docker exec webserver yoyo develop --no-config-file --database postgres://sdeuser:sdepassword1234@warehouse:5432/finance ./migrations
+redshift-migration:
+	docker exec -ti webserver yoyo apply --no-config-file --database redshift://$$(terraform -chdir=./terraform output -raw redshift_user):$$(terraform -chdir=./terraform output -raw redshift_password)@$$(terraform -chdir=./terraform output -raw redshift_dns_name):5439/dev ./migrations
 
-warehouse-rollback:
-	docker exec webserver yoyo rollback --no-config-file --database postgres://sdeuser:sdepassword1234@warehouse:5432/finance ./migrations
+redshift-rollback:
+	docker exec -ti webserver yoyo rollback --no-config-file --database redshift://$$(terraform -chdir=./terraform output -raw redshift_user):$$(terraform -chdir=./terraform output -raw redshift_password)@$$(terraform -chdir=./terraform output -raw redshift_dns_name):5439/dev ./migrations
+
+warehouse-data-migration: spectrum-migration redshift-migration
 
 ####################################################################################################################
 # Port forwarding to local machine
-
 cloud-metabase:
-	terraform -chdir=./terraform output -raw private_key > private_key.pem && chmod 600 private_key.pem && ssh -o "IdentitiesOnly yes" -i private_key.pem ubuntu@$$(terraform -chdir=./terraform output -raw ec2_public_dns) -N -f -L 3001:$$(terraform -chdir=./terraform output -raw ec2_public_dns):3000 && open http://localhost:3001 && rm private_key.pem
+	terraform -chdir=./terraform output -raw private_key > private_key.pem && chmod 600 private_key.pem && ssh -o "IdentitiesOnly yes" -i private_key.pem ubuntu@$$(terraform -chdir=./terraform output -raw ec2_public_dns) -N -f -L 3000:$$(terraform -chdir=./terraform output -raw ec2_public_dns):3000 && open http://localhost:3000 && rm private_key.pem
 
 cloud-airflow:
-	terraform -chdir=./terraform output -raw private_key > private_key.pem && chmod 600 private_key.pem && ssh -o "IdentitiesOnly yes" -i private_key.pem ubuntu@$$(terraform -chdir=./terraform output -raw ec2_public_dns) -N -f -L 8081:$$(terraform -chdir=./terraform output -raw ec2_public_dns):8080 && open http://localhost:8081 && rm private_key.pem
+	terraform -chdir=./terraform output -raw private_key > private_key.pem && chmod 600 private_key.pem && ssh -o "IdentitiesOnly yes" -i private_key.pem ubuntu@$$(terraform -chdir=./terraform output -raw ec2_public_dns) -N -f -L 8080:$$(terraform -chdir=./terraform output -raw ec2_public_dns):8080 && open http://localhost:8080 && rm private_key.pem
 
 ####################################################################################################################
 # Helpers
-
 ssh-ec2:
 	terraform -chdir=./terraform output -raw private_key > private_key.pem && chmod 600 private_key.pem && ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i private_key.pem ubuntu@$$(terraform -chdir=./terraform output -raw ec2_public_dns) && rm private_key.pem
