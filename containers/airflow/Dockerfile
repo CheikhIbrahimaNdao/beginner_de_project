@@ -6,5 +6,5 @@ WORKDIR /opt/airflow
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["webserver"]
 FROM apache/airflow:2.2.0
-COPY containers/airflow/requirements.txt /requirements.txt
-RUN pip install --no-cache-dir -r /requirements.txt
+COPY requirements.txt
+RUN pip install --no-cache-dir -r containers/airflow/requirements.txt
