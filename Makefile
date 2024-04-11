@@ -1,5 +1,7 @@
 ####################################################################################################################
 # Setup containers to run Airflow
+get-data:
+	rm -rf ./data && rm -rf data.zip* && wget https://start-data-engg.s3.amazonaws.com/data.zip && unzip -o data.zip && chmod -R u=rwx,g=rwx,o=rwx data
 
 docker-spin-up:
 	docker compose --env-file env up airflow-init && docker compose --env-file env up --build -d
@@ -7,7 +9,7 @@ docker-spin-up:
 perms:
 	sudo mkdir -p logs plugins temp dags tests migrations && sudo chmod -R u=rwx,g=rwx,o=rwx logs plugins temp dags tests migrations
 
-up: perms docker-spin-up warehouse-migration
+up: get-data perms docker-spin-up warehouse-migration
 
 down:
 	docker compose down
