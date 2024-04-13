@@ -94,14 +94,14 @@ services:
     container_name: webserver
     command: webserver
     ports:
-      - 8080:8080
+      - 9092:9092
     healthcheck:
       test:
         [
           "CMD",
           "curl",
           "--fail",
-          "http://localhost:8080/health"
+          "http://localhost:9092/health"
         ]
       interval: 10s
       timeout: 10s
