@@ -10,8 +10,9 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.aws_region
-  profile = "default"
+  region     = "us-east-1"
+  access_key = "ASIAW3MEBHVUDCZYUFPJ"
+  secret_key = "filyRnQiOGfCYhNMoQoEE891BwEGQdh1r1eJsKY9"
 }
 
 # Create security group for access to EC2 from your Anywhere
